@@ -1,0 +1,66 @@
+# ============================================
+# Core
+# ============================================
+python>=3.10
+
+# ============================================
+# Dados e carregamento do ToLD-BR
+# ============================================
+datasets>=2.14,<3.0        # ToLD-BR usa loading script; <3.0 evita quebra
+huggingface-hub>=0.20
+pyarrow>=14.0              # necessário para save_to_disk / load_from_disk
+
+# ============================================
+# Modelagem clássica (Regressão Logística)
+# ============================================
+scikit-learn>=1.3
+scipy>=1.10
+
+# ============================================
+# Modelagem neural (BERTimbau)
+# ============================================
+torch>=2.1                 # instale a build com CUDA se tiver GPU local
+transformers>=4.35
+accelerate>=0.24
+sentencepiece>=0.1.99      # tokenizador do BERTimbau
+
+# ============================================
+# Manipulação de dados
+# ============================================
+pandas>=2.0
+numpy>=1.24
+
+# ============================================
+# Visualização
+# ============================================
+matplotlib>=3.7
+seaborn>=0.12
+
+# ============================================
+# Pré-processamento de texto (PT-BR)
+# ============================================
+nltk>=3.8
+regex>=2023.0
+emoji>=2.8                 # útil para limpeza de tweets
+unidecode>=1.3             # normalização de acentos
+
+# ============================================
+# Métricas e avaliação
+# ============================================
+scikit-learn>=1.3          # (já listado acima; reforço para métricas)
+seqeval>=1.2.2             # opcional: métricas multilabel por categoria
+
+# ============================================
+# Notebooks
+# ============================================
+jupyter>=1.0
+ipykernel>=6.25
+notebook>=7.0
+ipywidgets>=8.1
+tqdm>=4.66
+
+# ============================================
+# Reprodutibilidade e logging
+# ============================================
+python-dotenv>=1.0         # leitura de .env (se necessário)
+pyyaml>=6.0                # arquivos de configuração
