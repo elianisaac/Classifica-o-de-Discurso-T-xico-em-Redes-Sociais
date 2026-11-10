@@ -26,6 +26,7 @@ from typing import Optional
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from utils import (  # noqa: E402
+    SEED,
     describe_environment,
     ensure_dir,
     save_results,
@@ -57,7 +58,7 @@ def load_variant(variant: str, output_dir: Path, force: bool = False):
     Returns:
         DatasetDict do Hugging Face.
     """
-    from datasets import load_dataset, load_from_disk
+    from datasets import DatasetDict, concatenate_datasets, load_dataset, load_from_disk
 
     logger = setup_logging(name="load_data")
 
@@ -68,7 +69,12 @@ def load_variant(variant: str, output_dir: Path, force: bool = False):
 
     if cache_path.exists() and not force:
         logger.info("Carregando do disco: %s", cache_path)
-        return load_from_disk(str(cache_path))
+        cached = load_from_disk(str(cache_path))
+        if variant != "binary":
+            return cached
+        total = sum(map(len, cached.values()))
+        if len(cached["validation"]) == len(cached["test"]) == total // 5:
+            return cached
 
     logger.info("Baixando do Hugging Face: %s (config=%s)", HF_DATASET, variant)
 
@@ -77,6 +83,23 @@ def load_variant(variant: str, output_dir: Path, force: bool = False):
         variant,
         trust_remote_code=True,  # o dataset usa loading script
     )
+
+    if variant == "binary":
+        total = sum(map(len, ds.values()))
+        validation_extra = total // 5 - len(ds["validation"])
+        test_extra = total // 5 - len(ds["test"])
+        split = ds["train"].train_test_split(
+            test_size=validation_extra + test_extra, seed=SEED
+        )
+        ds = DatasetDict({
+            "train": split["train"],
+            "validation": concatenate_datasets([
+                ds["validation"], split["test"].select(range(validation_extra))
+            ]),
+            "test": concatenate_datasets([
+                ds["test"], split["test"].select(range(validation_extra, validation_extra + test_extra))
+            ]),
+        })
 
     ensure_dir(cache_path.parent)
     logger.info("Salvando em disco: %s", cache_path)
