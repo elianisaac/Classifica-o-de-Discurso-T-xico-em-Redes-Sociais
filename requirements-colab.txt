@@ -6,7 +6,7 @@
 # ============================================
 # Manipulação de Dados e Download
 # ============================================
-datasets>=2.14
+datasets>=2.14,<3.0
 huggingface-hub>=0.20
 pyarrow>=14.0
 pandas>=2.0
