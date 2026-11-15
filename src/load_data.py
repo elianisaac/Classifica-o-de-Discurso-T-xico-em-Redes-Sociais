@@ -54,14 +54,25 @@ def load_variant(variant: str, output_dir: Path, force: bool = False):
 
     # Divisão Treino (80%), Validação (10%), Teste (10%)
     # Usamos stratify no binário para manter a proporção de tóxicos
+    # Divisão Treino (80%), Validação (10%), Teste (10%)
     if variant == "binary":
-        df = df[['text', 'toxic']].rename(columns={'toxic': 'label'})
-        df['label'] = df['label'].fillna(0).astype(int)
+        # O CSV original não tem a coluna 'toxic'. Vamos criá-la somando as categorias.
+        categorias = ['homophobia', 'obscene', 'insult', 'racism', 'misogyny', 'xenophobia']
         
+        # Se a soma dos votos das categorias for maior que 0, o tweet é tóxico (1)
+        df['label'] = (df[categorias].sum(axis=1) > 0).astype(int)
+        
+        # Mantém apenas texto e a nova coluna label
+        df = df[['text', 'label']]
+        
+        # Faz a divisão estratificada para manter a proporção de tóxicos
         train_df, temp_df = train_test_split(df, test_size=0.2, random_state=42, stratify=df['label'])
         val_df, test_df = train_test_split(temp_df, test_size=0.5, random_state=42, stratify=temp_df['label'])
     else:
-        df = df.drop(columns=['toxic'])
+        # Para multilabel, apenas removemos a coluna que não existe no CSV original (se houver)
+        if 'toxic' in df.columns:
+            df = df.drop(columns=['toxic'])
+            
         train_df, temp_df = train_test_split(df, test_size=0.2, random_state=42)
         val_df, test_df = train_test_split(temp_df, test_size=0.5, random_state=42)
 
